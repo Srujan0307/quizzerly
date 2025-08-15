@@ -86,7 +86,7 @@ export default function LandingTestimonials() {
                 </div>
   
                 <p className="text-gray-700 leading-relaxed">
-                  "{testimonial.text}"
+                  &quot;{testimonial.text}&quot;
                 </p>
               </div>
             ))}
