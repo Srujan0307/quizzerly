@@ -1,7 +1,6 @@
-<p align="center">
-  <img src="./public/quizzerly-logo.svg" alt="Quizzerly" width="520" />
-  
-</p>
+<div align="center">
+  <img src="./public/quizzerly-logo.svg" alt="Quizzerly" width="520" style="margin: 0 auto; display: block;" />
+</div>
 
 <h1 align="center">Quizzerly</h1>
 
