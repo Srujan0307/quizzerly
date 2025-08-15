@@ -34,9 +34,13 @@ export default function FileUpload() {
 
       // If the file is larger than ~4.5MB, extract text client-side to avoid request size limits
       if (file.size > 4.5 * 1024 * 1024) {
-        const { getDocument } = await import('pdfjs-dist');
+        // Configure pdf.js worker from CDN to avoid bundler worker setup
+        const pdfjsLib = await import('pdfjs-dist/build/pdf');
+        const version = pdfjsLib.version || 'latest';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.mjs`;
+
         const arrayBuffer = await file.arrayBuffer();
-        const pdf = await getDocument({ data: arrayBuffer }).promise;
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let extracted = '';
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
