@@ -30,14 +30,40 @@ export default function FileUpload() {
     setError('');
     try {
       const formData = new FormData();
-      formData.append('file', file);
       formData.append('questionCount', questionCount.toString());
+
+      // If the file is larger than ~4.5MB, extract text client-side to avoid request size limits
+      if (file.size > 4.5 * 1024 * 1024) {
+        const { getDocument } = await import('pdfjs-dist');
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await getDocument({ data: arrayBuffer }).promise;
+        let extracted = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const strings = content.items.map((it) => ('str' in it ? it.str : ''));
+          extracted += strings.join(' ') + '\n\n';
+        }
+        formData.append('text', extracted);
+      } else {
+        formData.append('file', file);
+      }
+
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
         credentials: 'include',
       });
-      const data = await response.json();
+
+      let data;
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error(text.slice(0, 200));
+      }
+
       if (response.ok) {
         setQuiz(data.quiz);
         setContentAnalysis(data.contentAnalysis);

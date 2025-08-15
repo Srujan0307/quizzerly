@@ -17,13 +17,19 @@ export async function POST(request) {
 
     const formData = await request.formData();
     const file = formData.get('file');
+    const inlineText = formData.get('text');
     const questionCount = parseInt(formData.get('questionCount') || '5', 10);
 
-    if (!file || file.type !== 'application/pdf') {
-      return NextResponse.json({ error: 'Please upload a valid PDF file.' }, { status: 400 });
+    let text = '';
+    if (inlineText && typeof inlineText === 'string') {
+      // Client-side extracted text (used for large PDFs)
+      text = inlineText;
+    } else {
+      if (!file || file.type !== 'application/pdf') {
+        return NextResponse.json({ error: 'Please upload a valid PDF file.' }, { status: 400 });
+      }
+      text = await extractTextFromFile(file);
     }
-
-    const text = await extractTextFromFile(file);
     const contentAnalysis = analyzeTextContent(text);
 
     const quizData = await generateQuizFromText(text, questionCount);
